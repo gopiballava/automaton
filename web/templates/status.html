@@ -1,0 +1,29 @@
+<html>
+    <head>
+        <script src="http://code.jquery.com/jquery-3.1.1.js"></script>
+        <script type="text/javascript">
+            function doRefresh(){
+                // console.log("doRefresh");
+                $(".autorefresh").each( function() {
+                    $(this).load("/variables/date?id=" + this.id);
+                });
+            }
+
+            function initRefresh() {
+                // console.log("initRefresh");
+                setInterval(doRefresh, 5000);
+            }
+
+            $(document).ready(function () {
+                doRefresh();
+                initRefresh(); 
+            });
+        </script>
+    </head>
+    <body>
+        <h1>{{ salutation }}</h1>
+        <h2>{{ target }}</h2>
+        <h3 id="show" class="autorefresh">SHOW is a CLASS</h3>
+        <h3 id="show2_foo_bar" class="autorefresh">SHOW is ALSO a CLASS</h3>
+</body>
+</html>

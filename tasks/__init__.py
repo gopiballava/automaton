@@ -4,11 +4,11 @@ import sys
 
 sys.path.append(os.path.normpath(os.path.join(__file__, "../..")))  #  noqa
 
-from . import boot, sign
+from . import boot, cv, db, sign
 
 
 ns = Collection()
 for module in [
-    boot, sign
+    boot, cv, db, sign
 ]:
     ns.add_collection(Collection.from_module(module))

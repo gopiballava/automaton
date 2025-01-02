@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, Item, Barcode, User, BarcodeType, StoredMisc
+from .models import Base, Item, Barcode, User, BarcodeType, StoredMisc, ItemRelationship, RelationshipType
 import pytest
 
 
@@ -93,7 +93,23 @@ class TestBarcodes:
         misc.value["foo"] = "barbar"
         data = db_session.query(StoredMisc).filter_by(item_key="unit_test").first()
         assert data.value == {"foo": "barbar"}
+    
+    def test_relationships(self, db_session):
+        basement = Item(title="Basement")
+        epoxy = Item(title="epoxy")
+        assert len(epoxy.is_related_to) == 0
+        assert len(basement.is_related_to) == 0
+        relate = ItemRelationship(relationship_type=RelationshipType.is_located_at)
+        relate.to_item = epoxy
+        relate.from_item = basement
+        assert len(epoxy.is_related_to) == 1
+        assert len(basement.is_related_from) == 1
 
+        assert len(epoxy.is_related_from) == 0
+        assert len(basement.is_related_to) == 0
+        db_session.commit()
+        assert len(epoxy.is_related_to) == 1
+        assert len(basement.is_related_to) == 0
 
 
 class TestBlog:

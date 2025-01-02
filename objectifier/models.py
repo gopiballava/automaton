@@ -1,3 +1,5 @@
+from sqlalchemy import Table
+from sqlalchemy import Column
 from sqlalchemy_json import mutable_json_type
 from typing import List, Set
 from typing import Optional
@@ -21,8 +23,32 @@ class BarcodeType(enum.Enum):
     code128 = "code128"
 
 
+# NOT USED right now.
 class ItemType(enum.Enum):
     location = "location"
+
+
+class RelationshipType(enum.Enum):
+    is_located_at = "is_located_at"
+    is_contained_inside = "is_contained_inside"
+    belongs_inside_kit = "belongs_inside_kit"
+
+
+class ItemRelationship(Base):
+    __tablename__ = "item_relationship_table"
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    from_id: Mapped[int] = mapped_column(ForeignKey("items.id"), primary_key=True)
+    to_id: Mapped[int] = mapped_column(ForeignKey("items.id"), primary_key=True)
+    relationship_type: Mapped[RelationshipType]
+    # from_item: Mapped["Item"] = relationship(foreign_keys=[from_id])
+    from_item: Mapped["Item"] = relationship(
+        back_populates="is_related_from",
+        foreign_keys=[from_id],
+    )
+    to_item: Mapped["Item"] = relationship(
+        back_populates="is_related_to",
+        foreign_keys=[to_id],
+    )
 
 
 class Item(Base):
@@ -32,6 +58,22 @@ class Item(Base):
     description: Mapped[Optional[str]]
     barcodes: Mapped[List["Barcode"]] = relationship(
         back_populates="item", cascade="all, delete-orphan"
+    )
+
+    is_related_to: Mapped[List["ItemRelationship"]] = relationship(
+        # secondary="item_relationship_table"
+        # primaryjoin=lambda: Item.id == ItemRelationship.to_id
+        # primaryjoin="Item.id == ItemRelationship.to_id"
+        back_populates="to_item",
+        foreign_keys=[ItemRelationship.to_id],
+    )
+
+    is_related_from: Mapped[List["ItemRelationship"]] = relationship(
+        # secondary="item_relationship_table"
+        # primaryjoin=lambda: Item.id == ItemRelationship.to_id
+        # primaryjoin="Item.id == ItemRelationship.to_id"
+        back_populates="from_item",
+        foreign_keys=[ItemRelationship.from_id],
     )
 
     is_location: Mapped[bool] = False
@@ -63,6 +105,9 @@ class Item(Base):
 
     def __repr__(self) -> str:
         return f"Item(id={self.id!r}, title={self.title!r}, description={self.description!r})"
+    
+    def single_line(self) -> str:
+        return f"{self.id!r}  {self.title!r}  {self.description!r}"
 
 
 class Barcode(Base):
@@ -84,6 +129,13 @@ class StoredMisc(Base):
     item_key: Mapped[str] = mapped_column(unique=True)
     value: Mapped[dict] = mapped_column(mutable_json_type(dbtype=JSON, nested=True))
     # = Column(mutable_json_type(dbtype=JSONB, nested=True))
+
+
+class MigratedCouchRecord(Base):
+    __tablename__ = "migrated_couch_record"
+    id: Mapped[str] = mapped_column(primary_key=True)
+    type: Mapped[str]
+    contents: Mapped[dict] = mapped_column(mutable_json_type(dbtype=JSON, nested=True))
 
 
 class User(Base):

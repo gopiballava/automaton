@@ -46,7 +46,7 @@ class Dylos:
 
     def get_single_reading(self) -> Tuple[int, int]:
         while True:
-            input_line = self._serial.readline()
+            input_line = self._serial.readline().decode()
             if "," in input_line:
                 print(f"Reading: {input_line}")
                 (large, small) = input_line.split(",")

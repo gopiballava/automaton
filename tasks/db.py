@@ -1,5 +1,5 @@
-import couchdb
-from sqlalchemy.orm import sessionmaker
+# import couchdb
+# from sqlalchemy.orm import sessionmaker
 from invoke import task
 from objectifier.models import Base, MigratedCouchRecord
 from sqlalchemy import create_engine

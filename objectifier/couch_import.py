@@ -6,7 +6,7 @@ from .api import Api
 from .models import MigratedCouchRecord
 
 
-PASSWORD = os.environ["COUCHDB_PASSWD"]
+PASSWORD = os.environ.get("COUCHDB_PASSWD", None)
 
 
 class CouchImport:

@@ -7,7 +7,8 @@ from objectifier.api import Api
 from objectifier.couch_import import CouchImport
 import os
 
-OBJECTIFIER_DATABASE = os.path.normpath(os.environ["OBJECTIFIER_DATABASE"])
+if 'OBJECTIFIER_DATABASE' in os.environ:
+    OBJECTIFIER_DATABASE = os.path.normpath(os.environ["OBJECTIFIER_DATABASE"])
 
 
 def make_engine():

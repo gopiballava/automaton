@@ -45,6 +45,7 @@ class Api:
         title: Optional[str] = None,
         description: Optional[str] = None,
     ) -> Item:
+        """Update the title and/or description of an item based on the scanned barcode tag."""
         found_item = self.get_item_for_tag(tag_value)
         if title is not None:
             found_item.title = title
@@ -55,6 +56,7 @@ class Api:
     def store_tagged_item_at_tagged_location(
         self, item_tag_value: str, location_tag_value: str
     ):
+        """Mark an item as currently stored at this location."""
         item = self.get_item_for_tag(item_tag_value)
         # print(f"====> Item with tag {item.barcodes[0].tag_value} / {item_tag_value} to be stored: {item}")
         location = self.get_item_for_tag(location_tag_value)
@@ -73,7 +75,8 @@ class Api:
             # Looks like we already have this item present; let's just silently accept this.
             self._session.rollback()
 
-    def get_items_at_tagged_location(self, tag_value: str) -> List[Item]:
+    def get_items_at_tagged_location(self, tag_value: str, include_container_contents: bool=False) -> List[Item]:
+        """Find all items that are stored in this location."""
         location = self.get_item_for_tag(tag_value)
         retv = []
         for relationship in self._session.query(ItemRelationship).filter(
@@ -81,4 +84,7 @@ class Api:
             ItemRelationship.relationship_type == RelationshipType.is_located_at,
         ):
             retv.append(relationship.from_item)
+        if include_container_contents:
+            raise NotImplementedError("We can't yet gather container contents.")
         return retv
+

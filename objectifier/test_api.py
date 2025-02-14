@@ -47,7 +47,7 @@ class TestCoreAPI:
         retrieved_item = api.get_item_for_tag("newqr")
         assert retrieved_item.title == "newly_added_item"
 
-    def test_item_query(self, api: Api, with_items):
+    def test_item_query(self, api: Api, with_items: List[Item]):
         assert len(api.query_items("Item")) == 2
         assert len(api.query_items("item")) == 2
         assert len(api.query_items("OneItem")) == 1
@@ -55,17 +55,30 @@ class TestCoreAPI:
         assert len(api.query_items("items")) == 0
 
     def test_stored_at_location(self, api: Api, with_items: List[Item]):
+
+        # Add a location to the database:
         location_tag = "qr_location"
         new_location = api.add_tagged_item(tag_value=location_tag, title="newly_added_location", is_location=True)
+
+        # Verify that it contains no items: 
         assert len(api.get_items_at_tagged_location(location_tag)) == 0
-        api.store_tagged_item_at_tagged_location("abcd", location_tag)
+
+        # Mark an item as now stored at the new location:
+        api.store_tagged_item_at_tagged_location(with_items[0].barcodes[0].tag_value, location_tag)
+        # Verify that the location contains one item:
         assert len(api.get_items_at_tagged_location(location_tag)) == 1
         # Add a second item:
         api.store_tagged_item_at_tagged_location(with_items[1].barcodes[0].tag_value, location_tag)
         assert len(api.get_items_at_tagged_location(location_tag)) == 2
+
         # Add the first item a second time:
         api.store_tagged_item_at_tagged_location(with_items[0].barcodes[0].tag_value, location_tag)
+        # Make sure we still only have two items at that location, and didn't double store it:
         assert len(api.get_items_at_tagged_location(location_tag)) == 2
+
+        first_item = api.get_item_for_tag(with_items[0].barcodes[0].tag_value)
+        assert first_item.stored_at_location
+        
 
     # def test_stored_at_location_low_level(self, api: Api, with_items: List[Item]):
     #     new_location = api.add_tagged_item(tag_value="newqr", title="newly_added_location", is_location=True)

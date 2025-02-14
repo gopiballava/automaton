@@ -14,3 +14,13 @@ def send_dylos(name: str, small: int, large: int):
             "large": large,
         },
     )
+
+
+def send_raw(name: str, count: int):
+    requests.get(
+        url=urljoin(BACKEND_BASE_URL, 'sensor/raw_particle'),
+        params={
+            "name": name,
+            "count": count,
+        },
+    )

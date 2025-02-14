@@ -27,7 +27,19 @@ def particles(ctx):
     d = Dylos()
     (large, small) = d.get_single_reading()
     send_dylos("alton.diningroom.dylos", large, small)
-    
+
     while True:
         (large, small) = d.get_averaged_readings()
         send_dylos("alton.diningroom.dylos", large, small)
+
+@task
+def rawparticle(ctx):
+    from particle.raw import Raw
+    from web.client import send_raw
+    d = Raw()
+    count = d.get_single_reading()
+    send_raw("alton.diningroom.raw_particle", count)
+    
+    while True:
+        count = d.get_averaged_readings()
+        send_raw("alton.diningroom.raw_particle", count)

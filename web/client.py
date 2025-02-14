@@ -21,6 +21,6 @@ def send_raw(name: str, count: int):
         url=urljoin(BACKEND_BASE_URL, 'sensor/raw_particle'),
         params={
             "name": name,
-            "count": count,
+            "raw": count,
         },
     )

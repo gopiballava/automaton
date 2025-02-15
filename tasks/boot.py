@@ -43,3 +43,15 @@ def rawparticle(ctx):
     while True:
         count = d.get_averaged_readings()
         send_raw("alton.diningroom.raw_particle", count)
+
+@task
+def pms(ctx):
+    from particle.pms5003 import PMS
+    from web.client import send_pms
+    d = PMS()
+    (small, medium, large) = d.get_single_reading()
+    send_pms("alton.diningroom.pms5003", small, medium, large)
+    
+    while True:
+        (small, medium, large) = d.get_averaged_readings()
+        send_pms("alton.diningroom.pms5003", small, medium, large)

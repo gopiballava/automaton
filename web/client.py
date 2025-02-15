@@ -24,3 +24,14 @@ def send_raw(name: str, count: int):
             "raw": count,
         },
     )
+
+def send_pms(name: str, small: int, medium: int, large: int):
+    requests.get(
+        url=urljoin(BACKEND_BASE_URL, 'sensor/plantower'),
+        params={
+            "name": name,
+            "small": small,
+            "medium": medium,
+            "large": large,
+        },
+    )

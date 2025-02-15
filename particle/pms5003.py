@@ -52,7 +52,7 @@ class PMS:
             print(f"WARNING: Message length {len(msg)} is NOT DIVISIBLE BY TWO!")
             msg = msg[0:-1]
         retv = []
-        for i in range(len(msg) / 2):
+        for i in range(len(msg) // 2):
             retv.append(msg[i*2] * 0xff + msg[i*2+1])
         return retv
 
@@ -65,4 +65,5 @@ class PMS:
                 int_message = self._convert_to_sixteen(status_message)
                 print(f"Frame length: {int_message[0]}  PM1: {int_message[1]} PM2.5: {int_message[2]} PM10: {int_message[3]} Checksum: {hex(int_message[14])}")
                 print(f"Counts: 0.3: {int_message[7]} 0.5: {int_message[8]} 1.0: {int_message[9]} 2.5: {int_message[10]} 5: {int_message[11]} 10: {int_message[12]}")
+                print(f"Raw: {int_message}")
                 return (int_message[8], int_message[10], int_message[12])

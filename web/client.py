@@ -30,8 +30,8 @@ def send_pms(name: str, small: int, medium: int, large: int):
         url=urljoin(BACKEND_BASE_URL, 'sensor/plantower'),
         params={
             "name": name,
-            "small": small,
-            "medium": medium,
-            "large": large,
+            "count0.5": small,
+            "count2.5": medium,
+            "count10": large,
         },
     )

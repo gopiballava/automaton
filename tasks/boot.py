@@ -50,8 +50,8 @@ def pms(ctx):
     from web.client import send_pms
     d = PMS()
     (small, medium, large) = d.get_single_reading()
-    send_pms("alton.diningroom.pms5003", small, medium, large)
+    send_pms("alton.diningroom.pms", small, medium, large)
     
     while True:
         (small, medium, large) = d.get_averaged_readings()
-        send_pms("alton.diningroom.pms5003", small, medium, large)
+        send_pms("alton.diningroom.pms", small, medium, large)

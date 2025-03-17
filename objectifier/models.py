@@ -42,33 +42,32 @@ class ItemRelationship(Base):
     relationship_type: Mapped[RelationshipType]
     # from_item: Mapped["Item"] = relationship(foreign_keys=[from_id])
     from_item: Mapped["Item"] = relationship(
-        back_populates="is_related_from",
+        back_populates="is_related_to",
         foreign_keys=[from_id],
     )
     to_item: Mapped["Item"] = relationship(
-        back_populates="is_related_to",
+        back_populates="is_related_from",
         foreign_keys=[to_id],
     )
+    def __repr__(self) -> str:
+        return f"ItemRelationship(from_id={self.from_id}, to_id={self.to_id})"
 
 
 class Item(Base):
     __tablename__ = "items"
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
+    title: Mapped[Optional[str]]
     description: Mapped[Optional[str]]
+    notes: Mapped[Optional[str]]
+
     barcodes: Mapped[List["Barcode"]] = relationship(
         back_populates="item", cascade="all, delete-orphan"
     )
+    def tag_values(self) -> List[str]:
+        return [barcode.tag_value for barcode in self.barcodes]
+    # item_description: Mapped["ItemDescription"] = relationship(back_populates="item", cascade="all, delete-orphan")
 
     is_related_to: Mapped[List["ItemRelationship"]] = relationship(
-        # secondary="item_relationship_table"
-        # primaryjoin=lambda: Item.id == ItemRelationship.to_id
-        # primaryjoin="Item.id == ItemRelationship.to_id"
-        back_populates="to_item",
-        foreign_keys=[ItemRelationship.to_id],
-    )
-
-    is_related_from: Mapped[List["ItemRelationship"]] = relationship(
         # secondary="item_relationship_table"
         # primaryjoin=lambda: Item.id == ItemRelationship.to_id
         # primaryjoin="Item.id == ItemRelationship.to_id"
@@ -76,32 +75,37 @@ class Item(Base):
         foreign_keys=[ItemRelationship.from_id],
     )
 
-    is_location: Mapped[bool] = False
-    stored_at_location_id: Mapped[Optional[int]] = mapped_column(ForeignKey("items.id"))
-    stored_at_location = relationship(
-        "Item",
-        back_populates="location_contains_items",
-        remote_side=[id],
-        foreign_keys=[stored_at_location_id],
-    )
-    location_contains_items: Mapped[Set["Item"]] = relationship(
-        back_populates="stored_at_location", foreign_keys=[stored_at_location_id]
+    is_related_from: Mapped[List["ItemRelationship"]] = relationship(
+        # secondary="item_relationship_table"
+        # primaryjoin=lambda: Item.id == ItemRelationship.to_id
+        # primaryjoin="Item.id == ItemRelationship.to_id"
+        back_populates="to_item",
+        foreign_keys=[ItemRelationship.to_id],
     )
 
+    is_location: Mapped[bool] = False
     is_container: Mapped[bool] = False
-    stored_in_container_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("items.id")
-    )
-    stored_in_container = relationship(
-        "Item",
-        back_populates="container_contains_items",
-        remote_side=[id],
-        foreign_keys=[stored_in_container_id],
-    )
-    container_contains_items: Mapped[Set["Item"]] = relationship(
-        back_populates="stored_in_container",
-        foreign_keys=[stored_in_container_id],
-    )
+
+    def stored_at_location(self):
+        for elem in self.is_related_to:
+            if elem.relationship_type == RelationshipType.is_located_at:
+                print(f"=====> stored_at_location: {elem}")
+                return elem.to_item
+        return None
+    
+    def items_stored_here(self):
+        return [item for item in self.is_related_from if item.relationship_type == RelationshipType.is_located_at]
+    
+    def store_item_here(self, item):
+        if item not in self.items_stored_here():
+            print(f"=======> store;  item.id: {item.id} self.id(basement): {self.id}")
+            # rel = ItemRelationship(from_id=item.id, to_id=self.id, relationship_type=RelationshipType.is_located_at)
+            rel = ItemRelationship(relationship_type=RelationshipType.is_located_at)
+            print(f"======> rel.from: {rel.from_id} rel.to_id: {rel.to_id}")
+            item.is_related_to.append(rel)
+            self.is_related_from.append(rel)
+            print(f"======> rel.from: {rel.from_id} rel.to_id: {rel.to_id}")
+            return rel
 
     def __repr__(self) -> str:
         return f"Item(id={self.id!r}, title={self.title!r}, description={self.description!r})"
@@ -109,6 +113,16 @@ class Item(Base):
     def single_line(self) -> str:
         return f"{self.id!r}  {self.title!r}  {self.description!r}"
 
+
+# class ItemDescription(Base):
+#     __tablename__ = "item_descriptions"
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     item_id: Mapped[int] = mapped_column(ForeignKey("items.id"))
+#     item: Mapped["Item"] = relationship(back_populates="item_description")
+
+#     title: Mapped[str]
+#     description: Mapped[Optional[str]]
+#     notes: Mapped[Optional[str]]
 
 class Barcode(Base):
     __tablename__ = "barcodes"

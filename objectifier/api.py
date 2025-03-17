@@ -39,6 +39,12 @@ class Api:
     def query_items(self, query_string: str) -> List[Item]:
         return list(self._session.query(Item).filter(Item.title.contains(query_string)))
 
+    def get_item_with_id(self, item_id: int) -> Optional[Item]:
+        items = list(self._session.query(Item).filter(Item.id == item_id))
+        if len(items):
+            return items[0]
+        return None
+
     def update_item_with_tag(
         self,
         tag_value: str,

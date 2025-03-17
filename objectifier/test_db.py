@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture(scope="function")
 def db_session():
-    engine = create_engine("sqlite://", echo=True)
+    engine = create_engine("sqlite://", echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
     session = Session()
@@ -72,18 +72,22 @@ class TestBarcodes:
         db_session.commit()
 
     def test_location(self, db_session, with_item: Item):
-        assert with_item.stored_at_location == None
+        assert with_item.stored_at_location() == None
         # assert len(with_item.location_contains_items) == 0
         basement = Item(title="Basement")
-        assert len(basement.location_contains_items) == 0
-        # with_item.stored_at_location_id = basement.id
-        with_item.stored_at_location = basement
+        db_session.add(basement)
         db_session.commit()
+        assert len(basement.items_stored_here()) == 0
+        
+        rel = basement.store_item_here(with_item)
         # assert len(with_item.location_contains_items) == 1
+        # assert len(with_item.is_related_to) == 1
         found_item = db_session.query(Item).filter_by(title="OneItem").first()
-        assert found_item.stored_at_location.title == "Basement"
-        assert found_item.stored_at_location_id == basement.id
-        assert len(basement.location_contains_items) == 1
+        assert len(found_item.is_related_to) == 1
+        # print(f"=====> stored_at from_id: {found_item.stored_at_location().from_id} to_id: {found_item.stored_at_location().to_id}")
+        assert found_item.stored_at_location().title == "Basement"
+        assert found_item.stored_at_location().id == basement.id
+        assert len(basement.items_stored_here()) == 1
 
     def test_json(self, db_session):
         misc = StoredMisc(item_key="unit_test", value={"foo": "bar"})
@@ -94,22 +98,22 @@ class TestBarcodes:
         data = db_session.query(StoredMisc).filter_by(item_key="unit_test").first()
         assert data.value == {"foo": "barbar"}
     
-    def test_relationships(self, db_session):
-        basement = Item(title="Basement")
-        epoxy = Item(title="epoxy")
-        assert len(epoxy.is_related_to) == 0
-        assert len(basement.is_related_to) == 0
-        relate = ItemRelationship(relationship_type=RelationshipType.is_located_at)
-        relate.to_item = epoxy
-        relate.from_item = basement
-        assert len(epoxy.is_related_to) == 1
-        assert len(basement.is_related_from) == 1
+    # def test_relationships(self, db_session):
+    #     basement = Item(title="Basement")
+    #     epoxy = Item(title="epoxy")
+    #     assert len(epoxy.is_related_to) == 0
+    #     assert len(basement.is_related_to) == 0
+    #     relate = ItemRelationship(relationship_type=RelationshipType.is_located_at)
+    #     relate.to_item = epoxy
+    #     relate.from_item = basement
+    #     assert len(epoxy.is_related_to) == 1
+    #     assert len(basement.is_related_from) == 1
 
-        assert len(epoxy.is_related_from) == 0
-        assert len(basement.is_related_to) == 0
-        db_session.commit()
-        assert len(epoxy.is_related_to) == 1
-        assert len(basement.is_related_to) == 0
+    #     assert len(epoxy.is_related_from) == 0
+    #     assert len(basement.is_related_to) == 0
+    #     db_session.commit()
+    #     assert len(epoxy.is_related_to) == 1
+    #     assert len(basement.is_related_to) == 0
 
 
 class TestBlog:

@@ -2,6 +2,11 @@ from invoke import task
 from web.core import Core
 from web.client import send_dylos
 from particle.dylos import Dylos
+from objectifier.web import quickstart
+
+@task
+def objectifier(ctx):
+    quickstart()
 
 
 @task

@@ -9,9 +9,9 @@
     {% for item in data %}
     <tr>
         <td>
-            <A HREF="item_detail?item_id={{item.id}}"> {{item.title}}</A>
+            <A HREF="item_detail?item_id={{item.id}}"> {{item.get_item_description().title}}</A>
         </td>
-        <td>{{ item.description }}</td>
+        <td>{{ item.get_item_description().description }}</td>
         <td> {{ item.stored_at_location() }}</td>
         <td>{{ ", ".join(item.tag_values()) }}</td>
     </tr>

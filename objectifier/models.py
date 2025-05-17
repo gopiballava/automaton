@@ -56,16 +56,21 @@ class ItemRelationship(Base):
 class Item(Base):
     __tablename__ = "items"
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[Optional[str]]
-    description: Mapped[Optional[str]]
-    notes: Mapped[Optional[str]]
+    # title: Mapped[Optional[str]]
+    # description: Mapped[Optional[str]]
+    # notes: Mapped[Optional[str]]
 
     barcodes: Mapped[List["Barcode"]] = relationship(
         back_populates="item", cascade="all, delete-orphan"
     )
     def tag_values(self) -> List[str]:
         return [barcode.tag_value for barcode in self.barcodes]
-    # item_description: Mapped["ItemDescription"] = relationship(back_populates="item", cascade="all, delete-orphan")
+    
+    item_description: Mapped["ItemDescription"] = relationship(back_populates="item", cascade="all, delete-orphan")
+    def get_item_description(self):
+        if self.item_description is None:
+            self.item_description = ItemDescription()
+        return self.item_description
 
     is_related_to: Mapped[List["ItemRelationship"]] = relationship(
         # secondary="item_relationship_table"
@@ -114,15 +119,15 @@ class Item(Base):
         return f"{self.id!r}  {self.title!r}  {self.description!r}"
 
 
-# class ItemDescription(Base):
-#     __tablename__ = "item_descriptions"
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     item_id: Mapped[int] = mapped_column(ForeignKey("items.id"))
-#     item: Mapped["Item"] = relationship(back_populates="item_description")
+class ItemDescription(Base):
+    __tablename__ = "item_descriptions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("items.id"))
+    item: Mapped["Item"] = relationship(back_populates="item_description")
 
-#     title: Mapped[str]
-#     description: Mapped[Optional[str]]
-#     notes: Mapped[Optional[str]]
+    title: Mapped[str]
+    description: Mapped[Optional[str]]
+    notes: Mapped[Optional[str]]
 
 class Barcode(Base):
     __tablename__ = "barcodes"

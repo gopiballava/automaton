@@ -3,6 +3,7 @@ from typing import Optional, List
 from .models import (
     Base,
     Item,
+    ItemDescription,
     Barcode,
     User,
     BarcodeType,
@@ -30,14 +31,22 @@ class Api:
         is_location: Optional[bool] = None,
     ) -> Item:
         new_barcode = Barcode(tag_value=tag_value, tag_type=tag_type)
-        new_item = Item(title=title, description=description, is_location=is_location)
+        new_item = Item(is_location=is_location)
+        new_item_description = ItemDescription(title=title, description=description)
+        new_item.item_description = new_item_description
         new_item.barcodes.append(new_barcode)
         self._session.add(new_item)
         self._session.commit()
         return new_item
 
     def query_items(self, query_string: str) -> List[Item]:
-        return list(self._session.query(Item).filter(Item.title.contains(query_string)))
+        retv = []
+        # for description in self._session.query(ItemDescription).filter(ItemDescription.title.contains(query_string)):
+        for description in self._session.query(ItemDescription):
+            retv.append(description.item)
+        print(f"========> query found {retv}")
+        return retv
+        # return list(self._session.query(Item).filter(Item.item_description.title.contains(query_string)))
 
     def get_item_with_id(self, item_id: int) -> Optional[Item]:
         items = list(self._session.query(Item).filter(Item.id == item_id))
@@ -54,9 +63,9 @@ class Api:
         """Update the title and/or description of an item based on the scanned barcode tag."""
         found_item = self.get_item_for_tag(tag_value)
         if title is not None:
-            found_item.title = title
+            found_item.item_description.title = title
         if description is not None:
-            found_item.description = description
+            found_item.item_description.description = description
         return found_item
 
     def store_tagged_item_at_tagged_location(

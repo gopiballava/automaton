@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, Item, Barcode, User, BarcodeType, StoredMisc
+from .models import Base, Item, Barcode, BarcodeType, StoredMisc, ItemDescription
 import pytest
 from .api import Api
 
@@ -27,7 +27,8 @@ def api(db_session):
 def with_items(db_session) -> List[Item]:
     items = []
     for (title, tag_value) in (("OneItem", "abcd"), ("SecondItem", "defg")):
-        valid_item = Item(title=title, description=f"Sample item for unit test: {title}")
+        valid_item_description = ItemDescription(title=title, description=f"Sample item for unit test: {title}")
+        valid_item = Item(item_description=valid_item_description)
         db_session.add(valid_item)
         db_session.commit()
         barcode = Barcode(tag_value=tag_value)
@@ -45,7 +46,7 @@ class TestCoreAPI:
     def test_tagged_item_adder(self, api: Api):
         new_item = api.add_tagged_item(tag_value="newqr", title="newly_added_item")
         retrieved_item = api.get_item_for_tag("newqr")
-        assert retrieved_item.title == "newly_added_item"
+        assert retrieved_item.item_description.title == "newly_added_item"
 
     def test_item_query(self, api: Api, with_items: List[Item]):
         assert len(api.query_items("Item")) == 2

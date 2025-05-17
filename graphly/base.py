@@ -13,7 +13,7 @@ class RootData:
     
     def _validate_data(self, data: dict) -> bool:
         if data.keys() != self.__annotations__.keys():
-            raise RuntimeError("Some keys are missing")
+            raise RuntimeError(f"Some keys are missing: data had {data.keys()}; we expected {self.__annotations__.keys()}")
 
 
 class DSData(RootData):

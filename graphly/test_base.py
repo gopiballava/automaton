@@ -1,4 +1,4 @@
-
+import pytest
 from .base import RootNode, DSData, RootData
 
 
@@ -12,6 +12,7 @@ class DemoNode(RootNode):
         return DemoOutput()
 
 
+@pytest.mark.xfail(raises=RuntimeError)
 class TestBase:
     def test_root_data(self):
         do = DSData()

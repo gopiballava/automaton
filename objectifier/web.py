@@ -62,8 +62,8 @@ class RootWeb:
                 raise RuntimeError(f"Could not find item with id {item_id}")
             return tmpl.render(
                 button_text="Update",
-                title=item.title,
-                description=item.description,
+                title=item.item_description.title,
+                description=item.item_description.description,
                 item_id=item_id,
             )
         return tmpl.render(
@@ -81,8 +81,8 @@ class RootWeb:
             item = self._api.get_item_with_id(item_id=item_id)
             if item is None:
                 raise RuntimeError(f"Could not find item with id {item_id}")
-            item.title = title
-            item.description = description
+            item.get_item_description().title = title
+            item.get_item_description().description = description
             print(f"=====> UPDATED with {item}")
         else:
             self._api.add_tagged_item(tag_value=tag, title=title, description=description)
